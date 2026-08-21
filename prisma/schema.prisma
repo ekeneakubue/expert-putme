@@ -34,16 +34,53 @@ model User {
 
 /// JAMB candidates who register for the mock
 model Candidate {
-  id           String   @id @default(cuid())
+  id           String          @id @default(cuid())
   fullName     String
-  jambReg      String   @unique
+  jambReg      String          @unique
   phone        String
   passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  enrollment   MockEnrollment?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   @@index([phone])
   @@map("candidates")
+}
+
+/// Paid (or pending) mock subscription for a candidate
+model MockEnrollment {
+  id           String        @id @default(cuid())
+  candidateId  String        @unique
+  candidate    Candidate     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  subjectIds   String[]
+  paid         Boolean       @default(false)
+  paidAt       DateTime?
+  amount       Int           @default(1000)
+  reference    String?
+  attemptsUsed Int           @default(0)
+  attempts     MockAttempt[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("mock_enrollments")
+}
+
+/// Individual CBT sits under a mock subscription
+model MockAttempt {
+  id           String         @id @default(cuid())
+  enrollmentId String
+  enrollment   MockEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  attemptNumber Int
+  correct      Int
+  attempted    Int
+  total        Int
+  percent      Int
+  subjects     Json
+  submittedAt  DateTime
+
+  @@unique([enrollmentId, attemptNumber])
+  @@index([enrollmentId])
+  @@map("mock_attempts")
 }
 
 /// Exam subjects available for the mock paper

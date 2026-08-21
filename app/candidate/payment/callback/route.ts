@@ -3,6 +3,7 @@ import {
   ENROLLMENT_COOKIE,
   getCandidate,
   getMockEnrollment,
+  setMockEnrollment,
 } from "@/lib/candidate";
 import { MOCK_FEE_NAIRA } from "@/lib/mock";
 import { nairaToKobo, verifyPaystackPayment } from "@/lib/paystack";
@@ -63,7 +64,6 @@ export async function GET(request: Request) {
     return NextResponse.redirect(candidateUrl(request, "missing-enrollment"));
   }
 
-  // Fresh subscription attempt quota; keep prior result history.
   const paidEnrollment = {
     subjectIds,
     paid: true,
@@ -73,6 +73,9 @@ export async function GET(request: Request) {
     attemptsUsed: 0,
     attempts: enrollment.attempts ?? [],
   };
+
+  // Persist via helper (cookie + database), then ensure Set-Cookie on redirect.
+  await setMockEnrollment(paidEnrollment, candidate.jambReg);
 
   const response = NextResponse.redirect(candidateUrl(request, "success"));
   response.cookies.set(ENROLLMENT_COOKIE, JSON.stringify(paidEnrollment), {

@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { syncEnrollmentToDatabase } from "@/lib/enrollment-db";
 import { MOCK_ATTEMPTS_ALLOWED, MOCK_FEE_NAIRA } from "@/lib/mock";
 
 export type Candidate = {
@@ -129,7 +130,7 @@ export async function getMockEnrollment(): Promise<MockEnrollment | null> {
       attempts.length,
     );
 
-    return {
+    const enrollment: MockEnrollment = {
       subjectIds,
       paid: Boolean(data.paid),
       paidAt: data.paidAt,
@@ -138,12 +139,24 @@ export async function getMockEnrollment(): Promise<MockEnrollment | null> {
       attemptsUsed,
       attempts,
     };
+
+    const owner = await getCandidate().then((c) => c?.jambReg ?? null);
+    if (owner) {
+      void syncEnrollmentToDatabase(owner, enrollment).catch((error) => {
+        console.error("Failed to sync enrollment to database:", error);
+      });
+    }
+
+    return enrollment;
   } catch {
     return null;
   }
 }
 
-export async function setMockEnrollment(enrollment: MockEnrollment) {
+export async function setMockEnrollment(
+  enrollment: MockEnrollment,
+  jambReg?: string,
+) {
   const store = await cookies();
   const attempts = normalizeAttempts(enrollment.attempts);
   const payload: MockEnrollment = {
@@ -152,6 +165,17 @@ export async function setMockEnrollment(enrollment: MockEnrollment) {
     attempts,
   };
   store.set(ENROLLMENT_COOKIE, JSON.stringify(payload), cookieOptions);
+
+  const owner =
+    jambReg ??
+    (await getCandidate().then((candidate) => candidate?.jambReg ?? null));
+  if (owner) {
+    try {
+      await syncEnrollmentToDatabase(owner, payload);
+    } catch (error) {
+      console.error("Failed to sync enrollment to database:", error);
+    }
+  }
 }
 
 export async function recordMockAttempt(

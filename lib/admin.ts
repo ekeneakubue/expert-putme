@@ -1,10 +1,11 @@
 import { cookies } from "next/headers";
+import { prisma } from "@/lib/prisma";
 
 const COOKIE = "expertputme_admin";
 
-export async function setAdminSession() {
+export async function setAdminSession(userId: string) {
   const store = await cookies();
-  store.set(COOKIE, "1", {
+  store.set(COOKIE, userId, {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
@@ -12,16 +13,39 @@ export async function setAdminSession() {
   });
 }
 
-export async function isAdminAuthenticated() {
+export async function getAdminSessionUserId() {
   const store = await cookies();
-  return store.get(COOKIE)?.value === "1";
+  const value = store.get(COOKIE)?.value;
+  if (!value || value === "1") return null;
+  return value;
+}
+
+export async function isAdminAuthenticated() {
+  const userId = await getAdminSessionUserId();
+  if (!userId) return false;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true },
+  });
+
+  return Boolean(user);
+}
+
+export async function getAdminSessionUser() {
+  const userId = await getAdminSessionUserId();
+  if (!userId) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!user) return null;
+
+  const { passwordHash: _passwordHash, ...publicUser } = user;
+  return publicUser;
 }
 
 export async function clearAdminSession() {
   const store = await cookies();
   store.delete(COOKIE);
-}
-
-export function getAdminPassword() {
-  return process.env.ADMIN_PASSWORD || "admin123";
 }

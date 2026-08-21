@@ -22,7 +22,8 @@ export default async function AdminSettingsPage() {
         Hall settings
       </h1>
       <p className="mt-4 max-w-xl text-ink-muted leading-7">
-        Configure the mock engine and how the control room authenticates.
+        Configure the mock engine. Control room access uses staff accounts from
+        Users.
       </p>
 
       <section className="mt-10 border border-line bg-screen">
@@ -63,11 +64,13 @@ export default async function AdminSettingsPage() {
 
       <section className="mt-6 border border-line bg-screen">
         <div className="px-5 py-5 sm:px-6">
-          <h2 className="font-display text-2xl tracking-tight">Admin password</h2>
+          <h2 className="font-display text-2xl tracking-tight">
+            Control room access
+          </h2>
           <p className="mt-2 max-w-lg text-sm leading-6 text-ink-muted">
-            Set <span className="font-mono text-ink">ADMIN_PASSWORD</span> in
-            your environment file to change the control room password. Until
-            then, the default local password is used.
+            Admins and staff sign in at{" "}
+            <span className="font-mono text-ink">/admin/login</span> with their
+            email and password. Create accounts from the Users page.
           </p>
         </div>
       </section>

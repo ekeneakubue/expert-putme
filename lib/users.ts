@@ -1,5 +1,5 @@
 import { UserRole, type User } from "@prisma/client";
-import { hashPassword } from "@/lib/password";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
 
 export type PublicUser = Omit<User, "passwordHash">;
@@ -10,6 +10,22 @@ export async function listUsers(): Promise<PublicUser[]> {
   });
 
   return users.map(({ passwordHash: _passwordHash, ...user }) => user);
+}
+
+export async function findUserByEmail(email: string) {
+  return prisma.user.findUnique({
+    where: { email: email.trim().toLowerCase() },
+  });
+}
+
+export async function authenticateUser(email: string, password: string) {
+  const user = await findUserByEmail(email);
+  if (!user || !verifyPassword(password, user.passwordHash)) {
+    return null;
+  }
+
+  const { passwordHash: _passwordHash, ...publicUser } = user;
+  return publicUser;
 }
 
 export async function createUser(input: {

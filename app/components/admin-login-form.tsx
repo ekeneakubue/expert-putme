@@ -29,9 +29,23 @@ export function AdminLoginForm() {
       </div>
 
       <div className="space-y-5 px-6 py-6 sm:px-8">
+        <label className="block">
+          <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-ink-muted">
+            Email
+          </span>
+          <input
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            placeholder="you@example.com"
+            className="mt-2 w-full rounded-[3px] border border-line bg-field/70 px-3 py-2.5 outline-none focus:border-signal focus:bg-screen"
+          />
+        </label>
+
         <PasswordField
           autoComplete="current-password"
-          placeholder="Admin password"
+          placeholder="Password"
         />
 
         {state.error ? (
