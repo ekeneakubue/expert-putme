@@ -6,14 +6,14 @@ import { useState } from "react";
 import { logoutAdmin } from "@/app/actions/admin";
 import { Logo } from "@/app/components/logo";
 
-const nav = [
+const nav: Array<{ href: string; label: string; exact?: boolean }> = [
   { href: "/admin", label: "Overview", exact: true },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/candidates", label: "Candidates" },
   { href: "/admin/subjects", label: "Subjects" },
   { href: "/admin/questions", label: "Questions" },
   { href: "/admin/settings", label: "Settings" },
-] as const;
+];
 
 export function AdminSidebar() {
   const pathname = usePathname();
